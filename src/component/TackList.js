@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import TackItem from "./TackItem";
+import { connect } from "react-redux";
 
 class TackList extends Component {
     constructor(props){
@@ -77,4 +78,11 @@ class TackList extends Component {
   }
 }
 
-export default TackList;
+const mapStateToProps = (state) => {
+    return {
+        tasks: state.tasks
+    }
+
+};
+
+export default connect(mapStateToProps,null)(TackList);
