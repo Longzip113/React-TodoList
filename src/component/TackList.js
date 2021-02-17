@@ -1,40 +1,69 @@
 import React, { Component } from "react";
 import TackItem from "./TackItem";
 import { connect } from "react-redux";
+import * as actions from '../actions/index';
 
 class TackList extends Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            filterByName: '',
-            filterByStatus: -1
-        }
-    }
 
     onChange = (event) => {
         var target = event.target;
         var name = target.name;
         var value = target.value;
-        this.props.onFilter(name === 'filterByName' ? value : this.state.filterByName,
-                            name === 'filterByStatus' ? value : this.state.filterByStatus
-                            );
+        this.props.onFilterTable({  
+                                    name : name === 'filterByName' ? value : '',
+                                    status : name === 'filterByStatus' ? value : -1
+                                });
         this.setState({
             [name] : value
         }) 
     }
 
   render(){
-      var {tasks} = this.props;
-      var elmTasks = tasks.map((task, index) => {
-          return <TackItem 
-                        key={index} 
-                        task={task} 
-                        index={index}
-                        onUpdateStatus = {this.props.onUpdateStatus}
-                        onDelete = {this.props.onDelete}
-                        onUpdate = {this.props.onUpdate}
-                        />
-      })
+    var {tasks, filter, search, sort} = this.props;
+    
+    //ON SEARCH
+    if(search) {
+        tasks = tasks.filter((item) =>{
+            return item.name.toLowerCase().indexOf(search.toLowerCase()) >= 0 ? true : false
+        })
+    }
+
+    //ON FILTER
+    if(filter.status !== -1) {
+        tasks = tasks.filter((item) =>{
+            return item.status == filter.status ? true : false
+        })
+    }
+    if(filter.name) {
+        tasks = tasks.filter((item) =>{
+            return item.name.toLowerCase().indexOf(filter.name.toLowerCase()) >= 0 ? true : false
+        })
+    }
+
+    //ON SORT
+    if(sort.name === 'name') {
+        
+        tasks.sort((a, b) => {
+            if(a.name > b.name) return sort.value;
+            else if(a.name < b.name) return -sort.value;
+            else return 0
+        })
+    } else {
+        tasks.sort((a, b) => {
+            if(a.status > b.status) return -sort.value;
+            else if(a.status < b.status) return sort.value;
+            else return 0
+        })
+    }
+
+
+    var elmTasks = tasks.map((task, index) => {
+        return <TackItem 
+                    key={index} 
+                    task={task} 
+                    index={index}
+                    />
+    })
     return (
         <table className="table table-bordered table-hover">
             <thead>
@@ -53,14 +82,12 @@ class TackList extends Component {
                             type="text" 
                             className="form-control"
                             name = "filterByName" 
-                            value = {this.state.filterByName}
                             onChange={this.onChange}
                             />
                     </td>
                     <td>
                         <select 
-                            className="form-control" 
-                            value = {this.state.filterByStatus} 
+                            className="form-control"
                             name = "filterByStatus" 
                             onChange = {this.onChange}
                             >
@@ -80,9 +107,19 @@ class TackList extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        tasks: state.tasks
+        tasks: state.tasks,
+        filter: state.filter,
+        search: state.search,
+        sort: state.sort
     }
-
 };
 
-export default connect(mapStateToProps,null)(TackList);
+var mapDispatchToProps = (dispatch, Props) =>{
+    return {
+        onFilterTable: filter => {
+            dispatch(actions.filterTable(filter));
+        }
+    }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(TackList);

@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import * as actions from '../actions/index';
 
 class TackForm extends Component {
 
@@ -12,25 +14,25 @@ class TackForm extends Component {
     }
 
     componentWillMount(){
-        if(this.props.task){
-            var {task} = this.props;
+        if(this.props.editingTask){
+            var {editingTask} = this.props;
             this.setState({
-                id: task.id,
-                name: task.name,
-                status: task.status
+                id: editingTask.id,
+                name: editingTask.name,
+                status: editingTask.status
             })
         }
     }
 
     // load lại form khi onClick
     componentWillReceiveProps(nextProps){
-        if(nextProps.task){
+        if(nextProps.editingTask){
             //chuyển form edit
-            var {task} = nextProps;
+            var {editingTask} = nextProps;
             this.setState({
-                id: task.id,
-                name: task.name,
-                status: task.status
+                id: editingTask.id,
+                name: editingTask.name,
+                status: editingTask.status
             })
         } else {
             // khi bấm thêm chuyên form thêm
@@ -54,9 +56,8 @@ class TackForm extends Component {
         })
     }
     onSummit = (event) => {
-        //Bỏ đi summit mặc định
-        //event.preventDefault();
-        this.props.onSummit(this.state);
+        this.props.onAddTask(this.state);
+        this.props.onCloseForm();
         this.onClear();
     }
     onClear = () => {
@@ -66,7 +67,6 @@ class TackForm extends Component {
             status: true
         })
     }
-
   render(){
     var title = this.state.id === '' ? 'Thêm Công Việc':'Cập nhật công viêc'
     return (
@@ -99,7 +99,7 @@ class TackForm extends Component {
                     </select>
                     <br/>
                     <div className="text-center">
-                        <button type="submit" className="btn btn-warning" onClick={this.onSummit}>Lưu</button>&nbsp;
+                        <button className="btn btn-warning" onClick={this.onSummit}>Lưu</button>&nbsp;
                         <button type="submit" className="btn btn-danger" onClick={this.onClear}>Hủy Bỏ</button>
                     </div>
                 </form>
@@ -109,4 +109,21 @@ class TackForm extends Component {
   }
 }
 
-export default TackForm;
+var mapStateToProps =  state =>  {
+    return {
+        editingTask: state.editingTask
+    }
+}
+
+var mapDispatchToProps = (dispatch, Props) =>{
+    return {
+        onAddTask: task => {
+            dispatch(actions.addTask(task));
+        },
+        onCloseForm: isDisplayForm => {
+            dispatch(actions.closeForm(isDisplayForm));
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TackForm);
